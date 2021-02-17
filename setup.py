@@ -2,9 +2,10 @@ from setuptools import setup, find_packages
 import codecs
 import os
 
-VERSION = '0.0.3'
+VERSION = '0.0.5'
 DESCRIPTION = 'Making statistics easier with python'
-LONG_DESCRIPTION = 'A package that allows to do complex statsitical calculation very easily'
+with open('README.md', 'r') as file:
+    long_description = file.read()
 
 # Setting up
 setup(
@@ -14,7 +15,7 @@ setup(
     author_email="<sheikh_sahira1703@hotmail.com>",
     description=DESCRIPTION,
     long_description_content_type="text/markdown",
-    long_description=LONG_DESCRIPTION,
+    long_description=long_description,
     packages=find_packages(),
     install_requires=['statsmodels', 'numpy', 'pandas', 'sklearn', 'matplotlib'],
     keywords=['python', 'statistics', 'made', 'easy', 'mean', 'median', 'mode', 'standard deviation', 'skewness'],
