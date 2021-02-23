@@ -5,7 +5,7 @@ from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 
 __author__ = 'Sahira Sheikh'
-__version__ = '0.0.3'
+__version__ = '0.0.6'
 __email__ = 'sheikh_sahira1703@hotmail.com'
 
 class Mean:
@@ -25,11 +25,11 @@ class Mean:
         frequency: list containing the frequency of the class interval
         """
         ci_list = list(self.data[self.x_col].str.split("-"))
-        lower = [int(sublist[0]) for sublist in ci_list]
-        upper = [int(sublist[1]) for sublist in ci_list]
-        mid_values = [(lower_val + upper_val) / 2 for lower_val, upper_val in zip(lower, upper)]
-        frequency = self.data[self.f_col].values
-        return lower, upper, mid_values, frequency
+        lower = np.array([int(sublist[0]) for sublist in ci_list])
+        upper = np.array([int(sublist[1]) for sublist in ci_list])
+        mid_values = (lower+upper)/2
+        frequency = np.array(self.data[self.f_col].values)
+        return mid_values, frequency
 
     def calculate_mean_from_ci(self):
         """
@@ -38,20 +38,20 @@ class Mean:
         :return:
         mean: The mean of all the values calculated by using the formula sum(f*mid)/sum(f)
         """
-        lower, upper, mid_values, frequency = self.__get_ci_list()
-        mean = sum([(mid * f) for mid, f in zip(mid_values, frequency)]) / sum(frequency)
+        mid_values, frequency = self.__get_ci_list()
+        mean = np.sum(mid_values*frequency)/np.sum(frequency)
         return mean
 
     def print_mean_df(self):
         """
         Prints the dataframe with all the necessary details for calculating the mean
         """
-        lower, upper, mid_values, frequency = self.__get_ci_list()
+        mid_values, frequency = self.__get_ci_list()
         final_df = pd.DataFrame()
         final_df['X'] = self.data[self.x_col]
         final_df['F'] = self.data[self.f_col]
         final_df['Mid'] = mid_values
-        final_df['F*Mid'] = [(mid * f) for mid, f in zip(mid_values, frequency)]
+        final_df['F*Mid'] = mid_values*frequency
         return final_df
 
     def print_mean_from_ci(self):
@@ -59,7 +59,7 @@ class Mean:
         Prints the mean of the data with all the necessary details
         """
         mean = self.calculate_mean_from_ci()
-        lower, upper, mid_values, frequency = self.__get_ci_list()
+        mid_values, frequency = self.__get_ci_list()
         df = self.print_mean_df()
         print("The dataframe for finding the mean for the given data series is")
         print(df)
@@ -77,9 +77,9 @@ class Mean:
         f_values: List containing the values in f_col
         prod_list: List containing the product of the values in f_col and x_col
         """
-        x_values = self.data[self.x_col].values
-        f_values = self.data[self.f_col].values
-        prod_list = [x * f for x, f in zip(x_values, f_values)]
+        x_values = np.array(self.data[self.x_col].values)
+        f_values = np.array(self.data[self.f_col].values)
+        prod_list = x_values*f_values
         return x_values, f_values, prod_list
 
     def calculate_mean_discrete(self):
@@ -90,7 +90,7 @@ class Mean:
         mean: The mean of the discrete series
         """
         x_values, f_values, prod_list = self.__get_list_discrete()
-        mean = sum(prod_list) / sum(f_values)
+        mean = np.sum(prod_list) / np.sum(f_values)
         return mean
 
     def print_mean_discrete_df(self):
@@ -99,8 +99,8 @@ class Mean:
         """
         x_values, f_values, prod_list = self.__get_list_discrete()
         mean_discrete_df = pd.DataFrame()
-        mean_discrete_df["X"] = self.data[self.x_col]
-        mean_discrete_df["F"] = self.data[self.f_col]
+        mean_discrete_df["X"] = x_values
+        mean_discrete_df["F"] = f_values
         mean_discrete_df["F*X"] = prod_list
         return mean_discrete_df
 
@@ -127,8 +127,8 @@ class Mean:
         sum(val_list): The sum of the list passed to it
         len(val_list): The number of observations in the list passed to it
         """
-        mean = sum(val_list)/len(val_list)
-        return mean, sum(val_list), len(val_list)
+        mean = np.sum(val_list)/len(val_list)
+        return mean, np.sum(val_list), len(val_list)
     @staticmethod
     def return_mean_individual(series):
         mean, sum_val, len_val = Mean.get_mean_individual(series)
@@ -162,10 +162,10 @@ class Median:
         cf_list: list containing cumulative frequency of each class interval
         """
         combined_list = list(self.data[self.x_col].str.split("-"))
-        lower = [int(val[0]) for val in combined_list]
-        upper = [int(val[1]) for val in combined_list]
-        f_list = self.data[self.f_col].values
-        cf_list = self.data[self.f_col].cumsum().values
+        lower = np.array([int(val[0]) for val in combined_list])
+        upper = np.array([int(val[1]) for val in combined_list])
+        f_list = np.array(self.data[self.f_col].values)
+        cf_list = np.array(self.data[self.f_col].cumsum().values)
         return lower, upper, f_list, cf_list
 
     def print_df(self):
@@ -190,7 +190,7 @@ class Median:
          median_value: The median of the given data
         """
         lower, upper, f_list, cf_list = self.__get_lists()
-        cf = sum(f_list)
+        cf = np.sum(f_list)
         concerned_n = (cf / 2)
         for i in range(1, len(cf_list) - 1):
             if cf_list[i - 1] <= concerned_n <= cf_list[i + 1]:
@@ -337,7 +337,7 @@ class Median:
         """
         x, f, cf_col = self.__get_list_discrete()
         q1, q3 = self.__get_quartiles_discrete()
-        print(f"The cumulative frequency is {sum(f)}")
+        print(f"The n is {sum(f)}")
         print(f"The position of element of first quartile is {(sum(f) + 1) / 4}")
         print(f"The first quartile (element at this position) is {q1}")
         print("\n")
@@ -592,10 +592,10 @@ class StandardDeviation:
         mid_list: List containing the mid values of all the class intervals in the data
         """
         split_list = list(self.data[self.x_col].str.split("-"))
-        lower = [int(sublist[0]) for sublist in split_list]
-        upper = [int(sublist[1]) for sublist in split_list]
-        f_list = self.data[self.f_col].values
-        mid_list = [(low+up)/2 for low, up in zip(lower, upper)]
+        lower = np.array([int(sublist[0]) for sublist in split_list])
+        upper = np.array([int(sublist[1]) for sublist in split_list])
+        f_list = np.array(self.data[self.f_col].values)
+        mid_list = (lower+upper)/2
         return lower, upper, f_list, mid_list
 
     def __get_standard_deviation_cont(self):
@@ -610,13 +610,13 @@ class StandardDeviation:
         prod_list: List containing f*mid(x)
         """
         lower_list, upper_list, frequency_list, mid_values_list = self.__get_lists()
-        prod_list = [mid*f for mid, f in zip(mid_values_list, frequency_list)]
-        mean_mid = sum(prod_list)/sum(frequency_list)
-        difference = [(x-mean_mid) for x in mid_values_list]
-        squared_difference = [diff**2 for diff in difference]
-        product_squared_difference = [f*((val - mean_mid)**2) for f, val in zip(frequency_list, mid_values_list)]
-        variance = sum(product_squared_difference)/sum(frequency_list)
-        standard_deviation = variance**(1/2)
+        prod_list = mid_values_list*frequency_list
+        mean_mid = np.sum(prod_list)/np.sum(frequency_list)
+        difference = mid_values_list-mean_mid
+        squared_difference = difference**2
+        product_squared_difference = frequency_list*((mid_values_list-mean_mid))**2
+        variance = np.sum(product_squared_difference)/np.sum(frequency_list)
+        standard_deviation = np.sqrt(variance)
         return difference, squared_difference, product_squared_difference, standard_deviation, prod_list
 
     def return_standard_deviation_cont(self):
@@ -651,13 +651,13 @@ class StandardDeviation:
         """
         x_val_discrete = self.data[self.x_col].values
         f_val_discrete = self.data[self.f_col].values
-        prod_mean_discrete = [x*f for x, f in zip(x_val_discrete, f_val_discrete)]
-        mean_x_discrete = sum(prod_mean_discrete)/sum(f_val_discrete)
-        diff_discrete = [x_discrete - mean_x_discrete for x_discrete in x_val_discrete]
-        squared_difference_discrete = [val_discrete**2 for val_discrete in diff_discrete]
-        product_discrete = [f_disc * sq_disc for f_disc, sq_disc in zip(f_val_discrete, squared_difference_discrete)]
-        var_discrete = sum(product_discrete)/sum(f_val_discrete)
-        stdev_discrete = var_discrete**(1/2)
+        prod_mean_discrete = x_val_discrete*f_val_discrete
+        mean_x_discrete = np.sum(prod_mean_discrete)/np.sum(f_val_discrete)
+        diff_discrete = x_val_discrete-mean_x_discrete
+        squared_difference_discrete = (diff_discrete)**2
+        product_discrete = f_val_discrete*squared_difference_discrete
+        var_discrete = np.sum(product_discrete)/np.sum(f_val_discrete)
+        stdev_discrete = np.sqrt(var_discrete)
         return diff_discrete, squared_difference_discrete, product_discrete, stdev_discrete, prod_mean_discrete
 
     def return_stdev_discrete(self):
@@ -688,12 +688,13 @@ class StandardDeviation:
         stdev_individual: Standard deviation of individual series
 
         """
-        mean_x_individual = sum(series)/len(series)
-        diff_series =[x-mean_x_individual for x in series]
-        sq_diff_series = [diff**2 for diff in diff_series]
-        variance_individual = sum(sq_diff_series)/len(sq_diff_series)
-        stdev_individual = variance_individual**(1/2)
+        mean_x_individual = np.sum(series)/len(series)
+        diff_series = series-mean_x_individual
+        sq_diff_series =  diff_series**2
+        variance_individual = np.sum(sq_diff_series)/len(sq_diff_series)
+        stdev_individual = np.sqrt(variance_individual)
         return diff_series, sq_diff_series, stdev_individual
+
     def return_stdev_individual(series):
         diff_series, sq_diff_series, stdev_individual = StandardDeviation.__standard_deviation_individual(series)
         return stdev_individual
@@ -867,7 +868,7 @@ class UnivariateRegression:
         mean_y = self.y.mean()
         stdev_x = self.x.std(ddof=0)
         stdev_y = self.y.std(ddof=0)
-        covariance = sum((x_val - mean_x) * (y_val - mean_y) for x_val, y_val in zip(self.x, self.y))/nrows
+        covariance = np.sum((np.array(self.x)-mean_x)*(np.array(self.y)-mean_y))/nrows
         correlation = covariance / (stdev_x * stdev_y)
         beta = correlation * (stdev_y / stdev_x)
         alpha = mean_y - beta * mean_x
@@ -893,13 +894,13 @@ class UnivariateRegression:
         The list containing predictions based on our regression model
         """
         alpha, beta = self.calculate_coef()
-        predictions = [alpha + beta*val for val in x]
-        return predictions
+        predictions = alpha + beta*np.array(x)
+        return np.array(predictions)
 
     def standard_error(self):
         predictions = self.predict(self.x)
-        y_values = self.y
-        std_err = (sum([(y-pred)**2 for y, pred in zip(y_values, predictions)])/len(self.x))**(1/2)
+        y_values = np.array(self.y)
+        std_err = np.sqrt(np.sum((y_values-predictions)**2)/len(self.x))
         return std_err
 
     def plot_data(self, **kwargs):
@@ -989,8 +990,8 @@ class UnivariateRegression:
         r_squared: The R squared for the regression model
         """
         predictions = self.predict(self.x)
-        mean_pred = sum(predictions)/len(predictions)
-        variance_pred = sum([(prediction - mean_pred)**2 for prediction in predictions])/len(predictions)
+        mean_pred = np.sum(predictions)/len(predictions)
+        variance_pred = np.sum((predictions - mean_pred)**2)/len(predictions)
         variance_y = (self.y.std(ddof=0))**2
         r_squared = variance_pred/variance_y
         return r_squared
